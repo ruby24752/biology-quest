@@ -69,6 +69,15 @@ body{user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-se
   <div class="wrap chapter-wrap" id="chapterList"></div>
 </div>
 
+<!--节选择页-->
+<div id="pageSection" class="page">
+  <div class="header">
+    <h2 id="sectionChapterTitle"></h2>
+    <p>选择小节开始刷题</p>
+  </div>
+  <div class="wrap chapter-wrap" id="sectionList"></div>
+</div>
+
 <!--答题页-->
 <div id="pageQuiz" class="page">
   <div class="quiz-box">
@@ -98,18 +107,45 @@ const chapterData = {
   1:{
     title:"第一单元 生物体的结构层次",
     chapters:[
-      {name:"第一章 认识生物",id:"u1c1"},
-      {name:"第二章 认识细胞",id:"u1c2"},
-      {name:"第三章 从细胞到生物体",id:"u1c3"},
+      {name:"第一章 认识生物",id:"u1c1", sections:[
+        {name:"第一节 观察周边环境中的生物", id:"u1c1s1"},
+        {name:"第二节 生物的特征", id:"u1c1s2"}
+      ]},
+      {name:"第二章 认识细胞",id:"u1c2", sections:[
+        {name:"第一节 练习使用显微镜", id:"u1c2s1"},
+        {name:"第二节 植物细胞", id:"u1c2s2"},
+        {name:"第三节 动物细胞", id:"u1c2s3"},
+        {name:"第四节 细胞的生活", id:"u1c2s4"}
+      ]},
+      {name:"第三章 从细胞到生物体",id:"u1c3", sections:[
+        {name:"第一节 细胞通过分裂产生新细胞", id:"u1c3s1"},
+        {name:"第二节 动物体的结构层次", id:"u1c3s2"},
+        {name:"第三节 植物体的结构层次", id:"u1c3s3"},
+        {name:"第四节 单细胞生物", id:"u1c3s4"}
+      ]},
     ]
   },
   2:{
     title:"第二单元 多种多样的生物",
     chapters:[
-      {name:"第一章 藻类与植物的类群",id:"u2c1"},
-      {name:"第二章 动物的类群",id:"u2c2"},
-      {name:"第三章 微生物",id:"u2c3"},
-      {name:"第四章 生物分类的方法",id:"u2c4"},
+      {name:"第一章 藻类与植物的类群",id:"u2c1", sections:[
+        {name:"第一节 藻类、苔藓植物和蕨类植物", id:"u2c1s1"},
+        {name:"第二节 种子植物", id:"u2c1s2"}
+      ]},
+      {name:"第二章 动物的类群",id:"u2c2", sections:[
+        {name:"第一节 无脊椎动物", id:"u2c2s1"},
+        {name:"第二节 脊椎动物", id:"u2c2s2"}
+      ]},
+      {name:"第三章 微生物",id:"u2c3", sections:[
+        {name:"第一节 微生物的分布", id:"u2c3s1"},
+        {name:"第二节 细菌", id:"u2c3s2"},
+        {name:"第三节 真菌", id:"u2c3s3"},
+        {name:"第四节 病毒", id:"u2c3s4"}
+      ]},
+      {name:"第四章 生物分类的方法",id:"u2c4", sections:[
+        {name:"第一节 尝试对生物进行分类", id:"u2c4s1"},
+        {name:"第二节 从种到界", id:"u2c4s2"}
+      ]},
     ]
   }
 };
@@ -462,7 +498,7 @@ function shuffle(arr){
   return newArr;
 }
 
-//展示章节列表
+//展示章节列表（单元→章）
 function showChapter(unitId){
   const data = chapterData[unitId];
   document.getElementById("chapterUnitTitle").innerText = data.title;
@@ -474,23 +510,57 @@ function showChapter(unitId){
   backDiv.innerText = "← 返回单元选择";
   backDiv.onclick = ()=>switchPage("pageHome");
   listWrap.appendChild(backDiv);
-  //渲染章节卡片
+  //渲染章卡片
   data.chapters.forEach(ch=>{
     const div = document.createElement("div");
     div.className = "card";
-    const qCount = questionBank[ch.id].length;
-    div.innerHTML = `<div class="img-area">📖</div><h3>${ch.name}</h3><p>题库${qCount}题，每次随机抽10题</p>`;
-    div.onclick = ()=>startQuiz(ch.id);
+    div.innerHTML = `<div class="img-area">📖</div><h3>${ch.name}</h3><p>共${ch.sections.length}节，点击选择小节</p>`;
+    div.onclick = ()=>showSection(unitId, ch);
     listWrap.appendChild(div);
   })
   switchPage("pageChapter");
 }
 
+//展示节列表（章→节）
+function showSection(unitId, ch){
+  document.getElementById("sectionChapterTitle").innerText = ch.name;
+  const listWrap = document.getElementById("sectionList");
+  listWrap.innerHTML = "";
+  //返回按钮
+  const backDiv = document.createElement("div");
+  backDiv.className = "back-btn";
+  backDiv.innerText = "← 返回章节列表";
+  backDiv.onclick = ()=>showChapter(unitId);
+  listWrap.appendChild(backDiv);
+  //渲染节卡片
+  ch.sections.forEach(sec=>{
+    const div = document.createElement("div");
+    div.className = "card";
+    const qCount = questionBank[sec.id] ? questionBank[sec.id].length : 0;
+    div.innerHTML = `<div class="img-area">✏️</div><h3>${sec.name}</h3><p>题库${qCount}题，每次随机抽10题</p>`;
+    div.onclick = ()=>startQuiz(sec.id);
+    listWrap.appendChild(div);
+  })
+  switchPage("pageSection");
+}
+
 //开始刷题
-function startQuiz(chapterId){
-  currentChapterId = chapterId;
+function startQuiz(sectionId){
+  currentChapterId = sectionId;
+  // 把节id映射到章题库，按节取前20题
+  const chapterMap = {
+    "u1c1s1": "u1c1", "u1c1s2": "u1c1",
+    "u1c2s1": "u1c2", "u1c2s2": "u1c2", "u1c2s3": "u1c2", "u1c2s4": "u1c2",
+    "u1c3s1": "u1c3", "u1c3s2": "u1c3", "u1c3s3": "u1c3", "u1c3s4": "u1c3",
+    "u2c1s1": "u2c1", "u2c1s2": "u2c1",
+    "u2c2s1": "u2c2", "u2c2s2": "u2c2",
+    "u2c3s1": "u2c3", "u2c3s2": "u2c3", "u2c3s3": "u2c3", "u2c3s4": "u2c3",
+    "u2c4s1": "u2c4", "u2c4s2": "u2c4"
+  };
+  const chapterId = chapterMap[sectionId];
+  const allQuestions = questionBank[chapterId] || questionBank[sectionId] || [];
   //从题库随机抽10题
-  questions = shuffle(questionBank[chapterId]).slice(0, TOTAL_Q);
+  questions = shuffle(allQuestions).slice(0, TOTAL_Q);
   now = 0; score = 0;
   renderQuestion();
   switchPage("pageQuiz");
