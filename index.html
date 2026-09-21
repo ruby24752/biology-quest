@@ -533,10 +533,20 @@ function showSection(unitId, ch){
   backDiv.onclick = ()=>showChapter(unitId);
   listWrap.appendChild(backDiv);
   //渲染节卡片
+  const chapterMap = {
+    "u1c1s1": "u1c1", "u1c1s2": "u1c1",
+    "u1c2s1": "u1c2", "u1c2s2": "u1c2", "u1c2s3": "u1c2", "u1c2s4": "u1c2",
+    "u1c3s1": "u1c3", "u1c3s2": "u1c3", "u1c3s3": "u1c3", "u1c3s4": "u1c3",
+    "u2c1s1": "u2c1", "u2c1s2": "u2c1",
+    "u2c2s1": "u2c2", "u2c2s2": "u2c2",
+    "u2c3s1": "u2c3", "u2c3s2": "u2c3", "u2c3s3": "u2c3", "u2c3s4": "u2c3",
+    "u2c4s1": "u2c4", "u2c4s2": "u2c4"
+  };
   ch.sections.forEach(sec=>{
     const div = document.createElement("div");
     div.className = "card";
-    const qCount = questionBank[sec.id] ? questionBank[sec.id].length : 0;
+    const chapterId = chapterMap[sec.id];
+    const qCount = questionBank[chapterId] ? questionBank[chapterId].length : 0;
     div.innerHTML = `<div class="img-area">✏️</div><h3>${sec.name}</h3><p>题库${qCount}题，每次随机抽10题</p>`;
     div.onclick = ()=>startQuiz(sec.id);
     listWrap.appendChild(div);
