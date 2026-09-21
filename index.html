@@ -88,6 +88,7 @@ body{user-select:none;-webkit-user-select:none;-moz-user-select:none;-ms-user-se
     <div class="question-title" id="question"></div>
     <div id="optionsWrap"></div>
     <div id="explainBox" style="display:none;margin-top:20px;padding:15px;background:#f0f7f2;border-radius:12px;font-size:15px;line-height:1.6;color:#333;"></div>
+    <button id="nextBtn" style="display:none;width:100%;margin-top:15px;" onclick="nextQuestion()">下一题 →</button>
   </div>
 </div>
 
@@ -581,8 +582,9 @@ function renderQuestion(){
   document.getElementById("qIndex").innerText = (now+1) + "/" + TOTAL_Q;
   document.getElementById("scoreShow").innerText = score;
   document.getElementById("question").innerText = item.q;
-  // 隐藏解析
+  // 隐藏解析和下一题按钮
   document.getElementById("explainBox").style.display = "none";
+  document.getElementById("nextBtn").style.display = "none";
   const optWrap = document.getElementById("optionsWrap");
   optWrap.innerHTML = "";
   item.opt.forEach(opt=>{
@@ -609,19 +611,25 @@ function selectAnswer(sel, el, item){
   explainBox.style.display = "block";
   explainBox.innerText = "📖 解析：" + (item.explain || "本题考察该章节核心知识点");
 
-  setTimeout(()=>{
-    if(sel === correctAns){
-      score += 10;
-      playCorrect();
-      speakText("答对了！");
-    }else{
-      playWrong();
-      speakText("答错了！");
-    }
-    now++;
-    if(now >= TOTAL_Q){ endGame(); return; }
-    renderQuestion();
-  }, 2500);
+  // 显示下一题按钮
+  document.getElementById("nextBtn").style.display = "block";
+  document.getElementById("nextBtn").innerText = (now >= TOTAL_Q-1) ? "查看结果 →" : "下一题 →";
+
+  if(sel === correctAns){
+    score += 10;
+    document.getElementById("scoreShow").innerText = score;
+    playCorrect();
+    speakText("答对了！");
+  }else{
+    playWrong();
+    speakText("答错了！");
+  }
+}
+
+function nextQuestion(){
+  now++;
+  if(now >= TOTAL_Q){ endGame(); return; }
+  renderQuestion();
 }
 
 function endGame(){
